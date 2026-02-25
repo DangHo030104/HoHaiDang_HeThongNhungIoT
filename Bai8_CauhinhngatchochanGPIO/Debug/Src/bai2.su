@@ -1,0 +1,6 @@
+bai2.c:60:6:EXTI3_IRQHandler	8	static
+bai2.c:71:5:main	8	static
+bai2.c:92:13:Led_Init	16	static
+bai2.c:107:13:Interrupt_Init	32	static
+bai2.c:139:13:delay	16	static
+bai2.c:144:13:LedControl_Status	16	static

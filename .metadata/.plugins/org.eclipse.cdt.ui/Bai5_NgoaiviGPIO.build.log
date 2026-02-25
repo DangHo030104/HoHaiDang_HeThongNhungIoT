@@ -1,0 +1,10 @@
+16:38:51 **** Incremental Build of configuration Debug for project Bai5_NgoaiviGPIO ****
+make -j16 all 
+arm-none-eabi-size   Bai5_NgoaiviGPIO.elf 
+   text	   data	    bss	    dec	    hex	filename
+   1352	      8	   1568	   2928	    b70	Bai5_NgoaiviGPIO.elf
+Finished building: default.size.stdout
+ 
+
+16:38:51 Build Finished. 0 errors, 0 warnings. (took 278ms)
+

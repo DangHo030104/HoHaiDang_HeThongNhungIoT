@@ -1,0 +1,10 @@
+14:44:06 **** Incremental Build of configuration Debug for project Bai8_CauhinhngatchochanGPIO ****
+make -j16 all 
+arm-none-eabi-size   Bai8_CauhinhngatchochanGPIO.elf 
+   text	   data	    bss	    dec	    hex	filename
+   2556	     32	   1568	   4156	   103c	Bai8_CauhinhngatchochanGPIO.elf
+Finished building: default.size.stdout
+ 
+
+14:44:06 Build Finished. 0 errors, 0 warnings. (took 273ms)
+

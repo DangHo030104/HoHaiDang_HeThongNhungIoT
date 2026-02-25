@@ -1,0 +1,143 @@
+/*
+ * bai2.c
+ *
+ *  Created on: Feb 24, 2026
+ *      Author: Admin
+ */
+
+#include "stm32f401re_gpio.h"
+#include "stm32f401re_rcc.h"
+#include <stdint.h>
+
+//==================== Define Logic GPIO_PIN ====================
+#define GPIO_PIN_SET      1
+#define GPIO_PIN_RESET    0
+#define GPIO_PIN_LOW      0
+#define GPIO_PIN_HIGH     1
+
+//==================== Define GPIO ==============================
+#define BUZZER_GPIO_PORT          GPIOC
+#define BUZZER_GPIO_PIN           GPIO_Pin_9
+#define BUZZER_PIN                9
+#define BUZZERControl_SetClock    RCC_AHB1Periph_GPIOC
+
+#define BUTTON_GPIO_PORT          GPIOB
+#define BUTTON_GPIO_PIN           GPIO_Pin_4
+#define BUTTON_B5_PIN             4
+#define BUTTONControl_SetClock    RCC_AHB1Periph_GPIOB
+
+//==================== Delay (simple debounce) ===================
+static void Delay_ms(uint32_t ms)
+{
+    // Delay thô (phụ thuộc clock hệ thống). Dùng chống rung OK cho bài lab.
+    // Nếu board chạy 84MHz thì hệ số này tương đối gần. Có thể chỉnh nếu muốn.
+    volatile uint32_t i;
+    while (ms--)
+    {
+        for (i = 0; i < 8400; i++)
+        {
+            __asm__("nop");
+        }
+    }
+}
+
+//==================== GPIO Init =================================
+static void Buzzer_Init(void)
+{
+    GPIO_InitTypeDef GPIO_InitStructure;
+
+    RCC_AHB1PeriphClockCmd(BUZZERControl_SetClock, ENABLE);
+
+    GPIO_InitStructure.GPIO_Pin   = BUZZER_GPIO_PIN;
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_OUT;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+    GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_DOWN;
+
+    GPIO_Init(BUZZER_GPIO_PORT, &GPIO_InitStructure);
+
+    // đảm bảo trạng thái ban đầu tắt
+    BUZZER_GPIO_PORT->BSRRH |= (1U << BUZZER_PIN);
+}
+
+static void Button_Init(void)
+{
+    GPIO_InitTypeDef GPIO_InitStructure;
+
+    RCC_AHB1PeriphClockCmd(BUTTONControl_SetClock, ENABLE);
+
+    GPIO_InitStructure.GPIO_Pin   = BUTTON_GPIO_PIN;
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_UP;
+
+    GPIO_Init(BUTTON_GPIO_PORT, &GPIO_InitStructure);
+}
+
+//==================== Control & Read ============================
+static void BuzzerControl_SetStatus(GPIO_TypeDef *GPIOx, uint8_t GPIO_PIN, uint8_t Status)
+{
+    if (Status == GPIO_PIN_SET)
+    {
+        GPIOx->BSRRL |= (1U << GPIO_PIN);
+    }
+
+    if (Status == GPIO_PIN_RESET)
+    {
+        GPIOx->BSRRH |= (1U << GPIO_PIN);
+    }
+}
+
+static uint8_t ButtonRead_Status(GPIO_TypeDef *GPIOx, uint32_t GPIO_PIN)
+{
+    uint32_t Read_Pin;
+
+    Read_Pin = (GPIOx->IDR) >> GPIO_PIN;
+    Read_Pin = Read_Pin & 0x01;
+
+    return (uint8_t)Read_Pin;
+}
+
+//==================== Main ======================================
+int main(void)
+{
+    uint8_t buzzer_state = GPIO_PIN_RESET; // 0 = OFF, 1 = ON
+    uint8_t last_btn = 1;                  // Pull-up => thả nút = 1
+
+    Buzzer_Init();
+    Button_Init();
+
+    while (1)
+    {
+        // Nút PB4 kéo lên (Pull-up):
+        // - Thả nút: đọc = 1
+        // - Nhấn nút: đọc = 0
+        uint8_t btn = ButtonRead_Status(BUTTON_GPIO_PORT, BUTTON_B5_PIN);
+
+        // Bắt sườn nhấn: từ 1 -> 0
+        if ((last_btn == 1) && (btn == 0))
+        {
+            Delay_ms(20); // chống rung lần 1
+
+            // kiểm tra lại sau delay vẫn đang nhấn
+            btn = ButtonRead_Status(BUTTON_GPIO_PORT, BUTTON_B5_PIN);
+            if (btn == 0)
+            {
+                // Đảo trạng thái buzzer
+                buzzer_state = (buzzer_state == GPIO_PIN_SET) ? GPIO_PIN_RESET : GPIO_PIN_SET;
+                BuzzerControl_SetStatus(BUZZER_GPIO_PORT, BUZZER_PIN, buzzer_state);
+
+                // Chờ nhả nút để tránh giữ nút mà toggle liên tục
+                while (ButtonRead_Status(BUTTON_GPIO_PORT, BUTTON_B5_PIN) == 0)
+                {
+                    // có thể thêm delay nhỏ để giảm tải CPU
+                    Delay_ms(5);
+                }
+
+                Delay_ms(20); // chống rung lần 2 (khi nhả)
+            }
+        }
+
+        last_btn = btn;
+    }
+}

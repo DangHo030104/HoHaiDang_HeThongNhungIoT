@@ -1,0 +1,10 @@
+15:36:11 **** Build of configuration Debug for project Bai14_LaptrinhthuvienAPIschoUART ****
+make -j16 all 
+arm-none-eabi-size   Bai14_LaptrinhthuvienAPIschoUART.elf 
+   text	   data	    bss	    dec	    hex	filename
+    928	      8	   1568	   2504	    9c8	Bai14_LaptrinhthuvienAPIschoUART.elf
+Finished building: default.size.stdout
+ 
+
+15:36:11 Build Finished. 0 errors, 0 warnings. (took 356ms)
+

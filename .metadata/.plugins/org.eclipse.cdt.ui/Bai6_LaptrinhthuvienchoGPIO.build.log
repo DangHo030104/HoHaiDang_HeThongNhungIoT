@@ -1,0 +1,10 @@
+09:41:56 **** Incremental Build of configuration Debug for project Bai6_LaptrinhthuvienchoGPIO ****
+make -j16 all 
+arm-none-eabi-size   Bai6_LaptrinhthuvienchoGPIO.elf 
+   text	   data	    bss	    dec	    hex	filename
+   1644	      8	   1568	   3220	    c94	Bai6_LaptrinhthuvienchoGPIO.elf
+Finished building: default.size.stdout
+ 
+
+09:41:56 Build Finished. 0 errors, 0 warnings. (took 328ms)
+
